@@ -13,89 +13,89 @@ public class Calc : MonoBehaviour
     private string tempStr;
     private string lastSymbol;
 
-    // Функция обработки нажатия кнопок с цифрами или с операндами 
-    public void buttonNumber_OnClick()
+    // Функция определения последнего введенного символа в строке результата (необходимо для анализа возможнисти дальнейших действий)
+    private void getLastSymbol()
     {
-        lastSymbol = "/";
         if (resultText.text == "0" || resultText.text == "Ошибка ввода" || resultText.text == "бесконечность") resultText.text = "";
+        lastSymbol = "/";
+        // Получаем последний введённый символ при нажатии на кнопку
         tempStr = resultText.text;
-        
-        if (tempStr.Length > 0)
-        {
-            lastSymbol = tempStr[tempStr.Length - 1].ToString(); // Получаем последний введённый символ при нажатии на кнопку
-        }
+        if (tempStr.Length > 0) lastSymbol = tempStr[tempStr.Length - 1].ToString();
+    }
 
-        if (buttonText == "0" || buttonText == "1" || buttonText == "2" || buttonText == "3" || buttonText == "4" ||
-            buttonText == "5" || buttonText == "6" || buttonText == "7" || buttonText == "8" || buttonText == "9")
+    // Функция обработки нажатия кнопок с цифрами или с операндами 
+    public void buttonNumberOnClick()
+    {
+        getLastSymbol();
+        resultText.text += buttonText;
+    }
+
+    // Функция обработки нажатия кнопок арифметических операций (+ - * /)
+    public void buttonOperationOnClick()
+    {
+        getLastSymbol();
+        if (lastSymbol != "+" && lastSymbol != "-" && lastSymbol != "*" && lastSymbol != "/") resultText.text += buttonText;
+        // Пустая строка результата должна иметь возможность начинаться со знака минус
+        if (resultText.text == "" && buttonText == "-") resultText.text = "-";
+        else if (resultText.text == "") resultText.text = "0";
+    }
+
+    // Функция обработки нажатия кнопки "открывающая скобка"
+    public void buttonLeftBracketOnClick()
+    {
+        getLastSymbol();
+        if (resultText.text == "" || lastSymbol == "+" || lastSymbol == "-" || lastSymbol == "*" || lastSymbol == "/") resultText.text += buttonText;
+    }
+
+    // Функция обработки нажатия кнопки "закрывающая скобка"
+    public void buttonRightBracketOnClick()
+    {
+        getLastSymbol();
+        int brackets = 0;
+        // Определяем кол-во открытых и закрытых скобок
+        for (int i = 0; i < resultText.text.Length; i++)
         {
-            resultText.text += buttonText;
+            if (resultText.text[i].ToString() == "(") brackets++;
+            if (resultText.text[i].ToString() == ")") brackets--;
         }
-        else if(buttonText == "+" || buttonText == "-" || buttonText == "*" || buttonText == "/")
+        // Проверяем возможность поставить закрывающую скобку
+        if (brackets > 0 &&  lastSymbol != "(" && lastSymbol != "+" && lastSymbol != "-" && lastSymbol != "*" && lastSymbol != "/") resultText.text += buttonText;
+        if (resultText.text == "") resultText.text = "0";
+    }
+
+    // Функция обработки нажатия кнопки "дробная точка"
+    public void buttonPointOnClick()
+    {
+        getLastSymbol();
+
+        // Флаги, которые разрешают/запрещают ставить десятичную точку в строке расчетов
+        bool flagPoint1 = false;
+        bool flagPoint2 = false;
+
+        if (resultText.text == "") resultText.text += "0.";
+        else
         {
-            if (lastSymbol != "+" && lastSymbol != "-" && lastSymbol != "*" && lastSymbol != "/")
-            {   
-                resultText.text += buttonText;
-            }
-            if (resultText.text == "" && buttonText == "-") resultText.text = "-";
-            else if(resultText.text == "") resultText.text = "0";
-        }
-        else if(buttonText == "(")
-        {
-            if(resultText.text == "" || lastSymbol == "+" || lastSymbol == "-" || lastSymbol == "*" || lastSymbol == "/")
-            {
-                resultText.text += buttonText;
-            }
-        }
-        else if(buttonText == ")")
-        {
-            int brackets = 0;
-            // Определяем кол-во открытых и закрытых скобок
+            // Посимвольно анализируем строку результата с целью определения возможности поставить десятичную точку
             for (int i = 0; i < resultText.text.Length; i++)
             {
-                if (resultText.text[i].ToString() == "(") brackets++;
-                if (resultText.text[i].ToString() == ")") brackets--;
+                string s = resultText.text[i].ToString();
+                if (s == ".") { flagPoint1 = true; flagPoint2 = true; }
+                if (s == "+" || s == "-" || s == "*" || s == "/") flagPoint1 = false;
+                if (s == "0" || s == "1" || s == "2" || s == "3" || s == "4" || s == "5" || s == "6" || s == "7" || s == "8" || s == "9") flagPoint2 = false;
             }
-
-            if (brackets > 0 && lastSymbol != "(" && lastSymbol != "+" && lastSymbol != "-" && lastSymbol != "*" && lastSymbol != "/")
-            {
-                resultText.text += buttonText;
-            }
-        }
-        else if(buttonText == ".")
-        {
-            bool flagPoint1 = false;
-            bool flagPoint2 = false;
-
-            if (resultText.text == "") { resultText.text += "0."; }
-            else
-            {
-                for (int i = 0; i < resultText.text.Length; i++)
-                {
-                    string s = resultText.text[i].ToString();
-                    if (s == ".") { flagPoint1 = true; flagPoint2 = true; }
-                    if (s == "+" || s == "-" || s == "*" || s == "/") flagPoint1 = false;
-                    if (s == "0" || s == "1" || s == "2" || s == "3" || s == "4" || s == "5" || s == "6" || s == "7" || s == "8" || s == "9") flagPoint2 = false;
-                }
-
-               
-
-                if (!flagPoint1 && !flagPoint2 && lastSymbol != "(" && lastSymbol != ")" && lastSymbol != "+" && lastSymbol != "-" && lastSymbol != "*" && lastSymbol != "/")
-                {
-                    resultText.text += buttonText;
-                }
-            }
+            if (!flagPoint1 && !flagPoint2 && lastSymbol != "(" && lastSymbol != ")" && lastSymbol != "+" && lastSymbol != "-" && lastSymbol != "*" && lastSymbol != "/") resultText.text += buttonText;
         }
     }
 
     // Функция обработки нажатия кнопки для очитки строки вывода результата
-    public void buttonClear_OnClick()
+    public void buttonClearOnClick()
     {
         resultText.text = "0";
         lastSymbol = "/";
     }
 
     // Функция обработки нажатия кнопки получения результата вычислений
-    public void buttonEquals_OnClick()
+    public void buttonEqualsOnClick()
     {
         // Обработка исключения необходима в случае ввода неправильного выражения по типу "2+4+-." и т.п.
         try
@@ -114,7 +114,7 @@ public class Calc : MonoBehaviour
     }
 
     // Функция обработки нажатия кнопки удаления последних добавленных символов в строке вычисления
-    public void buttomBack_OnClick()
+    public void buttomBackOnClick()
     { 
         if (resultText.text == "0" || resultText.text == "Ошибка ввода" || resultText.text == "бесконечность") resultText.text = "0";
         else
